@@ -4,15 +4,20 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_list/events.dart';
 import 'package:todo_list/splash_screen.dart';
+import 'package:todo_list/privacy.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 Dio dio = Dio();
 
-void main() => runApp(MyApp());
+void main() {
+  initializeDateFormatting().then((_) => runApp(MyApp()));
+}
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: '登入或者註冊',
       theme: ThemeData(
         primarySwatch: Colors.lightGreen,
@@ -72,6 +77,22 @@ class _LoginPageState extends State<LoginPage> {
   void _login() async {
     // 这里是发送请求到API的代码
 
+    if (_emailController.text.isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Email不能為空！',
+        gravity: ToastGravity.CENTER,
+      );
+      return;
+    }
+
+    if (_passwordController.text.isEmpty) {
+      Fluttertoast.showToast(
+        msg: '密碼不能為空！',
+        gravity: ToastGravity.CENTER,
+      );
+      return;
+    }
+
     try {
       final response = await dio.post(
         'https://calendar-dev.dev-laravel.co/api/auth/login',
@@ -126,34 +147,87 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: Text('登入'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image.asset('assets/images/todo-list.png',
-                width: 250), // 調整大小為所需的大小
-            SizedBox(height: 20),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-              style: TextStyle(fontSize: 20.0),
+      drawer: _buildDrawer(),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Image.asset('assets/images/todo-list.png', width: 250),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _emailController,
+                    decoration: InputDecoration(labelText: 'Email'),
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                  TextField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(labelText: '密碼'),
+                    obscureText: true,
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                          style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.lightGreen)),
+                          onPressed: _login,
+                          child: Text('登入',
+                              style: TextStyle(
+                                  fontSize: 18.0, color: Colors.white))),
+                      TextButton(
+                          style: ButtonStyle(
+                              foregroundColor:
+                                  MaterialStateProperty.all(Colors.lightGreen)),
+                          onPressed: _goToRegister,
+                          child:
+                              Text('前往註冊', style: TextStyle(fontSize: 20.0))),
+                    ],
+                  ),
+                  SizedBox(
+                      height:
+                          50), // Adjust this height as needed to provide space above the privacy policy when scrolling.
+                ],
+              ),
             ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: '密碼'),
-              obscureText: true,
-              style: TextStyle(fontSize: 20.0),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.lightGreen,
             ),
-            ElevatedButton(
-                onPressed: _login,
-                child: Text('登入',
-                    style: TextStyle(fontSize: 18.0, color: Colors.white))),
-            TextButton(
-                onPressed: _goToRegister,
-                child: Text('前往註冊', style: TextStyle(fontSize: 20.0)))
-          ],
-        ),
+            child: Text(
+              '選單',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.privacy_tip),
+            title: Text('隱私權政策'),
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => PrivacyPolicyPage()));
+            },
+          ),
+        ],
       ),
     );
   }
@@ -166,12 +240,53 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
   void _register() async {
+    if (_nameController.text.isEmpty) {
+      Fluttertoast.showToast(
+        msg: '名稱不能為空！',
+        gravity: ToastGravity.CENTER,
+      );
+      return;
+    }
+
+    if (_mobileController.text.isEmpty) {
+      Fluttertoast.showToast(
+        msg: '手機號碼不能為空！',
+        gravity: ToastGravity.CENTER,
+      );
+      return;
+    }
+
+    if (_emailController.text.isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Email不能為空！',
+        gravity: ToastGravity.CENTER,
+      );
+      return;
+    }
+
+    if (_passwordController.text.isEmpty) {
+      Fluttertoast.showToast(
+        msg: '密碼不能為空！',
+        gravity: ToastGravity.CENTER,
+      );
+      return;
+    }
+
+    if (_confirmPasswordController.text.isEmpty) {
+      Fluttertoast.showToast(
+        msg: '確認密碼不能為空！',
+        gravity: ToastGravity.CENTER,
+      );
+      return;
+    }
+
     if (_passwordController.text != _confirmPasswordController.text) {
       Fluttertoast.showToast(
         msg: '密碼不匹配！',
@@ -186,6 +301,7 @@ class _RegisterPageState extends State<RegisterPage> {
       data: {
         'name': _nameController.text,
         'email': _emailController.text,
+        'mobile': _mobileController.text,
         'password': _passwordController.text,
         'password_confirmation': _confirmPasswordController.text,
       },
@@ -206,42 +322,85 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('註冊')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image.asset('assets/images/todo-list.png',
-                width: 250), // 調整大小為所需的大小
-            SizedBox(height: 20),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: '名稱'),
-              style: TextStyle(fontSize: 20.0),
+      drawer: _buildDrawer(),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Image.asset('assets/images/todo-list.png', width: 250),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(labelText: '名稱'),
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                  TextField(
+                    controller: _mobileController,
+                    decoration: InputDecoration(labelText: '手機號碼'),
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                  TextField(
+                    controller: _emailController,
+                    decoration: InputDecoration(labelText: 'Email'),
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                  TextField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(labelText: '密碼'),
+                    style: TextStyle(fontSize: 20.0),
+                    obscureText: true,
+                  ),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    decoration: InputDecoration(labelText: '確認密碼'),
+                    style: TextStyle(fontSize: 20.0),
+                    obscureText: true,
+                  ),
+                  ElevatedButton(
+                      onPressed: _register,
+                      child: Text('註冊',
+                          style:
+                              TextStyle(fontSize: 18.0, color: Colors.white))),
+                  SizedBox(height: 50), // Adjust this height as needed.
+                ],
+              ),
             ),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-              style: TextStyle(fontSize: 20.0),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.lightGreen,
             ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: '密碼'),
-              style: TextStyle(fontSize: 20.0),
-              obscureText: true,
+            child: Text(
+              '選單',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
             ),
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: InputDecoration(labelText: '確認密碼'),
-              style: TextStyle(fontSize: 20.0),
-              obscureText: true,
-            ),
-            ElevatedButton(
-                onPressed: _register,
-                child: Text('註冊',
-                    style: TextStyle(fontSize: 18.0, color: Colors.white)))
-          ],
-        ),
+          ),
+          ListTile(
+            leading: Icon(Icons.privacy_tip),
+            title: Text('隱私權政策'),
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => PrivacyPolicyPage()));
+            },
+          ),
+        ],
       ),
     );
   }

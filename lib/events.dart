@@ -111,32 +111,29 @@ class _StartPageState extends State<StartPage> {
           contentPadding: const EdgeInsets.symmetric(
               horizontal: 24.0), // You can adjust this padding
           content: SingleChildScrollView(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.2,
-              child: Column(
-                children: <Widget>[
-                  TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(hintText: '请输入新的事件内容'),
-                    maxLines: 5, // Allows multiple lines
-                    keyboardType: TextInputType.multiline,
-                  ),
-                  Row(
-                    children: [
-                      Text('是否完成'),
-                      Switch(
-                        value: event.isActive == 1 ? false : true,
-                        onChanged: (value) {
-                          // 使用这里的 setState 来更新对话框内的状态
-                          setState(() {
-                            event.isActive = value ? 0 : 1;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            child: Column(
+              children: <Widget>[
+                TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(hintText: '请输入新的事件内容'),
+                  maxLines: 5,
+                  keyboardType: TextInputType.multiline,
+                ),
+                SizedBox(height: 10), // Adding a little space between elements
+                Row(
+                  children: [
+                    Text('是否完成'),
+                    Switch(
+                      value: event.isActive == 1 ? false : true,
+                      onChanged: (value) {
+                        setState(() {
+                          event.isActive = value ? 0 : 1;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           actions: [
@@ -240,39 +237,42 @@ class _StartPageState extends State<StartPage> {
       builder: (context) => StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) => AlertDialog(
           title: Text('新增事件'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _startDateController,
-                decoration: InputDecoration(
-                  labelText: '日期',
-                  hintText: '例如：2023-09-01',
-                ),
-                readOnly: true,
-              ),
-              TextField(
-                controller: _eventTitleController,
-                decoration: InputDecoration(
-                  hintText: '事件名稱',
-                ),
-                maxLines: 5,
-                keyboardType: TextInputType.multiline,
-              ),
-              Row(
-                children: [
-                  Switch(
-                    value: _isActive,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _isActive = value;
-                      });
-                    },
+          content: SingleChildScrollView(
+            // 這裡加入 SingleChildScrollView
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _startDateController,
+                  decoration: InputDecoration(
+                    labelText: '日期',
+                    hintText: '例如：2023-09-01',
                   ),
-                  Text('是否完成'),
-                ],
-              ),
-            ],
+                  readOnly: true,
+                ),
+                TextField(
+                  controller: _eventTitleController,
+                  decoration: InputDecoration(
+                    hintText: '事件名稱',
+                  ),
+                  maxLines: 5,
+                  keyboardType: TextInputType.multiline,
+                ),
+                Row(
+                  children: [
+                    Switch(
+                      value: _isActive,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isActive = value;
+                        });
+                      },
+                    ),
+                    Text('是否完成'),
+                  ],
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -332,6 +332,19 @@ class _StartPageState extends State<StartPage> {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
+  Future<void> updateEventIsActiveAPI(
+      DateTime focusDate, Event event, bool isActive) async {
+    // 呼叫 API 來更新 isActive 的狀態
+    await dio.post(
+      'https://calendar-dev.dev-laravel.co/api/calendar/updateIsActive',
+      data: {
+        'start_date': focusDate.toString().substring(0, 10),
+        'title': event.toString(),
+        'is_active': isActive ? 1 : 0,
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -348,6 +361,7 @@ class _StartPageState extends State<StartPage> {
       body: Column(
         children: [
           TableCalendar<Event>(
+            locale: 'zh_CN',
             firstDay: kFirstDay,
             lastDay: kLastDay,
             focusedDay: _focusedDay,
@@ -397,7 +411,27 @@ class _StartPageState extends State<StartPage> {
                       ),
                       child: ListTile(
                         onTap: () => print('${value[index]} 事件 {$index}'),
-                        title: Text('${value[index]}'),
+                        title: Row(
+                          children: [
+                            if (value[index].isActive == 1)
+                              Checkbox(
+                                value: value[index].isActive != 1, // 注意這裡的更改
+                                onChanged: (bool? newValue) async {
+                                  if (newValue != null && newValue) {
+                                    // 只有當 newValue 為 true 時才執行
+                                    // 這裡呼叫 API 來更新 isActive 的狀態
+                                    await updateEventIsActiveAPI(
+                                        _focusedDay, value[index], false);
+                                    setState(() {
+                                      value[index].isActive =
+                                          0; // 將 isActive 設置為 0
+                                    });
+                                  }
+                                },
+                              ),
+                            Expanded(child: Text('${value[index]}')),
+                          ],
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

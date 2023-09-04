@@ -19,6 +19,9 @@ dependencies:
   lottie: ^2.6.0
   shared_preferences: ^2.2.1
   table_calendar: ^3.0.9
+  http: ^1.1.0
+  flutter_html: ^3.0.0-beta.2
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:
