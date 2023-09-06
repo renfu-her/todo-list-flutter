@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:dio/dio.dart';
@@ -362,6 +363,37 @@ class _StartPageState extends State<StartPage> {
         children: [
           TableCalendar<Event>(
             locale: 'zh_CN',
+            calendarBuilders: CalendarBuilders(
+              dowBuilder: (context, day) {
+                final text =
+                    DateFormat.E('zh_CN').format(day); // 使用指定的語言代碼格式化日期
+
+                if (day.weekday == DateTime.saturday ||
+                    day.weekday == DateTime.sunday) {
+                  return Center(
+                    child: Text(
+                      text,
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  );
+                }
+
+                return Center(child: Text(text)); // 其他的星期天將使用預設的顏色
+              },
+              defaultBuilder: (context, date, events) {
+                return Center(
+                  child: Text(
+                    date.day.toString(),
+                    style: TextStyle(
+                      color: (date.weekday == DateTime.saturday ||
+                              date.weekday == DateTime.sunday)
+                          ? Colors.red
+                          : null,
+                    ),
+                  ),
+                );
+              },
+            ),
             firstDay: kFirstDay,
             lastDay: kLastDay,
             focusedDay: _focusedDay,
