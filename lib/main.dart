@@ -107,8 +107,10 @@ class _LoginPageState extends State<LoginPage> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         try {
           await prefs.setString('token', response.data['token']);
-          await prefs.setString('user_id',
-              response.data['user']['id'].toString()); // 注意，这里我们把 id 转换为字符串
+          await prefs.setString(
+              'user_id', response.data['user']['id'].toString());
+          await prefs.setString('user_email',
+              response.data['user']['email'].toString()); // 注意，这里我们把 id 转换为字符串
         } catch (e) {
           print('Error saving to SharedPreferences: $e');
         }
