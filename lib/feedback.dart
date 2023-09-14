@@ -42,54 +42,56 @@ class _FeedbackPageState extends State<FeedbackPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            DropdownButtonFormField<String>(
-              value: _selectedType,
-              hint: Text('選擇問題類型'),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedType = newValue;
-                });
-              },
-              items: [
-                DropdownMenuItem(child: Text('登入問題'), value: '登入問題'),
-                DropdownMenuItem(child: Text('行事曆問題'), value: '行事曆問題'),
-                DropdownMenuItem(child: Text('建議事項'), value: '建議事項'),
-              ],
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: '名稱',
-                border: OutlineInputBorder(),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              DropdownButtonFormField<String>(
+                value: _selectedType,
+                hint: Text('選擇問題類型'),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedType = newValue;
+                  });
+                },
+                items: [
+                  DropdownMenuItem(child: Text('登入問題'), value: '登入問題'),
+                  DropdownMenuItem(child: Text('行事曆問題'), value: '行事曆問題'),
+                  DropdownMenuItem(child: Text('建議事項'), value: '建議事項'),
+                ],
               ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: '電子郵件',
-                border: OutlineInputBorder(),
+              SizedBox(height: 16),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: '名稱',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _contentController,
-              maxLines: 6,
-              keyboardType: TextInputType.multiline,
-              decoration: InputDecoration(
-                labelText: '內容',
-                border: OutlineInputBorder(),
+              SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: '電子郵件',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _submitFeedback,
-              child: Text('提交'),
-            )
-          ],
+              SizedBox(height: 16),
+              TextField(
+                controller: _contentController,
+                maxLines: 6,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                  labelText: '內容',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _submitFeedback,
+                child: Text('提交'),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -131,6 +133,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
           'name': name,
           'email': email,
           'content': content,
+          'source': 'todo-list'
         },
         options: Options(
           headers: {
@@ -150,7 +153,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
               TextButton(
                 child: Text('確定'),
                 onPressed: () {
-                  // Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 },
               ),
