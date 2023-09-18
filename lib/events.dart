@@ -486,7 +486,16 @@ class _StartPageState extends State<StartPage> {
                                   }
                                 },
                               ),
-                            Expanded(child: Text('${value[index]}')),
+                            Expanded(
+                              child: Text(
+                                '${value[index]}',
+                                style: TextStyle(
+                                  decoration: value[index].isActive != 1
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                         trailing: Row(
