@@ -22,6 +22,10 @@ dependencies:
   http: ^1.1.0
   flutter_html: ^3.0.0-beta.2
   intl: ^0.18.1
+  add_2_calendar: ^2.2.4
+  flutter_native_timezone:
+    path: 'D:/git/flutter_native_timezone-master'
+
 
 dev_dependencies:
   flutter_test:
