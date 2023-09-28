@@ -5,9 +5,13 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart';
 import 'package:todo_list/utils.dart';
 import 'package:todo_list/main.dart';
 import 'package:todo_list/feedback.dart';
+import 'package:add_2_calendar/add_2_calendar.dart' as cal;
+import 'package:device_calendar/device_calendar.dart' as device_cal;
+import 'package:timezone/data/latest.dart' as tz;
 
 Dio dio = Dio();
 
@@ -281,24 +285,7 @@ class _StartPageState extends State<StartPage> {
             TextButton(
               child: Text('確認'),
               onPressed: () async {
-                final Map<String, dynamic> eventData = {
-                  "start_date": _startDateController.text,
-                  "title": _eventTitleController.text,
-                  'member_id': userId,
-                  'days': 1,
-                  'full_day': 1,
-                  'is_active': _isActive ? 0 : 1,
-                };
-
-                final response = await dio.post(
-                    'https://calendar-dev.dev-laravel.co/api/calendar/events',
-                    data: eventData);
-
-                if (response.statusCode == 200) {
-                  await _reloadEvents();
-                } else {
-                  print('Error while adding event: ${response.data}');
-                }
+                await _onSaveEventButtonPressed(_isActive);
 
                 _startDateController.clear(); // Clear the controllers
                 _eventTitleController.clear();
@@ -310,6 +297,71 @@ class _StartPageState extends State<StartPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _onSaveEventButtonPressed(bool isActive) async {
+    tz.initializeTimeZones();
+
+    final Map<String, dynamic> eventData = {
+      "start_date": _startDateController.text,
+      "title": _eventTitleController.text,
+      'member_id': userId,
+      'days': 1,
+      'full_day': 1,
+      'is_active': isActive ? 0 : 1,
+    };
+
+    final response = await dio.post(
+        'https://calendar-dev.dev-laravel.co/api/calendar/events',
+        data: eventData);
+
+    if (response.statusCode == 200) {
+      await _reloadEvents();
+
+      DateTime startOfDay = DateTime.parse(_startDateController.text).toLocal();
+      DateTime endOfDay = DateTime(
+          startOfDay.year, startOfDay.month, startOfDay.day, 23, 59, 59);
+
+      final eventId = response.data['id'];
+
+      device_cal.DeviceCalendarPlugin deviceCalendarPlugin =
+          device_cal.DeviceCalendarPlugin();
+
+      // 获取日历列表
+      final calendarsResult = await deviceCalendarPlugin.retrieveCalendars();
+      final calendars = calendarsResult.data;
+
+      if (calendars == null || calendars.isEmpty) {
+        print("No calendars available or permission not granted");
+        return;
+      }
+
+      // 创建一个可修改的日历列表
+      List<device_cal.Calendar> modifiableCalendars = List.from(calendars);
+
+      // 查找第一个不是只读的日历
+      device_cal.Calendar? firstCalendar = modifiableCalendars.firstWhere(
+        (calendar) => calendar.isReadOnly!,
+        orElse: () => calendars.first,
+      );
+
+      // 创建事件
+      print('ID: ' + eventId.toString());
+      print('ID:' + firstCalendar.id.toString());
+      device_cal.Event event = device_cal.Event(
+        firstCalendar.id,
+        start: TZDateTime.from(startOfDay, getLocation('Asia/Taipei')),
+        end: TZDateTime.from(endOfDay, getLocation('Asia/Taipei')),
+        allDay: true,
+        title: _eventTitleController.text,
+      );
+
+      // 添加事件到日历
+      final createEventResult =
+          await deviceCalendarPlugin.createOrUpdateEvent(event);
+    } else {
+      print('Error while adding event: ${response.data}');
+    }
   }
 
   Future<void> _reloadEvents() async {

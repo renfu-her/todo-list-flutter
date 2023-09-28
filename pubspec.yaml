@@ -25,6 +25,9 @@ dependencies:
   add_2_calendar: ^2.2.4
   flutter_native_timezone:
     path: 'D:/git/flutter_native_timezone-master'
+  device_calendar:
+    path: 'D:/git/device_calendar'
+  timezone: ^0.9.2
 
 
 dev_dependencies:
